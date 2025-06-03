@@ -3,29 +3,32 @@ const express = require('express');
 
 const app = express();
 
-/**
- 
-    //whatever request comes in, we want to send back a response
-    app.use((req,res)=> {
-        res.send('Hello World from express server');
+app.use("/user", (req, res) => {
+    res.send("HAHAHAHHAHHAH")
+})
+
+
+//this will only handle GET call to /user
+app.get("/user", (req, res) => {
+    res.send({
+        firstname: "Kedharnadh",
+        lastname: "G"
     })
+})
 
-*/
+app.post("/user", (req, res) => {
+    //Saving data to the database
+    res.send("Data saved successfully");
+})
 
-//it will only handle the request if the path is /test
+app.delete("/user", (req, res) => {
+    res.send("Data deleted successfully")
+})
+
+//this will match all the HTTP method API calls to /test
 app.use("/test", (req, res) => {
-    res.send('Hello World from express server');
+    res.send('Hello from the server /test');
 });
-
-app.use("/hello", (req, res) => {
-    res.send('Hello World from express server');
-});
-
-app.use("/", (req, res) => {
-    res.send('Hello World from express server, it is the Namaste Node JS dashboard');
-});
-
-
 
 app.listen(7777, () => {
     console.log('Server is successfully listening on http://localhost:7777');
