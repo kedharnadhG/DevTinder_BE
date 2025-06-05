@@ -2,7 +2,8 @@ const express = require('express');
 const { connect, getDBStatus } = require("./config/database");
 const dotenv = require("dotenv");
 const User = require("./models/user")
-
+const {validateSignUpData} = require("./utils/validation")
+const validator = require("validator");
 
 dotenv.config();
 
@@ -15,20 +16,63 @@ const PORT = process.env.PORT || 7778;
 app.use(express.json());
 
 
-// create a new user
+//Signing up a new user
 app.post("/signup", async(req, res) => {
-
-    // creating a new-Instance of the User-Model
-    const user = new User(req.body);
-
     try {
+        //Validation of the data
+        validateSignUpData(req);
+        
+        const {firstName, lastName, emailId, password} = req.body;
+
+        //Encrypt the password - Hashing (used Hooks in Mongoose, see in the User-Model)
+
+        // creating a new-Instance of the User-Model
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password
+        });
+
         await user.save();
         res.status(201).send("User Created Successfully");
     } catch (error) {
         console.log(error);
-        res.status(400).send("Error Creating User: " + error.message);
+        res.status(400).send("ERROR: " + error.message);
     }
 });
+
+
+//login a user
+app.post("/login", async(req, res) => {
+
+    const {emailId, password} = req.body;
+
+    if(!validator.isEmail(emailId)){
+        return res.status(400).send("Please enter a valid email");
+    }
+
+    try {
+        const user = await User.findOne({emailId}).select("+password");
+        if(!user){
+            throw new Error("Invalid Credentials");
+        };
+
+        const isPasswordValid = await user.comparePassword(password);
+
+        if(isPasswordValid){
+            res.send("Login Successful");
+        }
+        else{
+            throw new Error("Invalid Credentials");
+        }
+        
+    } catch (error) {
+        res.status(400).send("ERROR: " + error.message);
+    }
+
+});
+
 
 // GET User by email
 app.get("/user", async (req, res) => {

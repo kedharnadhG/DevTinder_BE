@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcrypt");
 
 const addressSchema = new mongoose.Schema({
     city: {
@@ -106,6 +107,24 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true
 })
+
+
+
+// Mongoose Pre Hook - used to encrypt the password before saving
+userSchema.pre("save", async function(next){
+    try {
+        if(!this.isModified("password")) return next();
+        this.password = await bcrypt.hash(this.password, 12);
+        next();
+    } catch (error) {
+        next(error);
+    }
+})
+
+//compare password
+userSchema.methods.comparePassword = async function(enteredPassword) {
+   return await bcrypt.compare(enteredPassword, this.password);
+}
 
 
 const UserModel = mongoose.model("User", userSchema);
