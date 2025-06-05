@@ -352,3 +352,23 @@ app.use("/", (err, req, res, next) => {
 })
 
 ```
+
+----
+
+----
+#### MODELS (Schema)
+
+
+```js
+
+//creating a new-Instance of the User-Model(i.e like a class)
+const user = new User({
+    firstName: "MS",
+    lastName: "DHONI",
+    emailId: "Dhoni@gmail.com",
+    password: "Dhonibhai",
+    age: 45,
+    gender: "male",
+    phoneNumber: "6755324342",
+});
+```

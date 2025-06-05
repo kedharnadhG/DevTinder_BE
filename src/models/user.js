@@ -1,12 +1,15 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const addressSchema = new mongoose.Schema({
     city: {
         type: String,
+        maxlength: 20,
         required: false
     },
     state: {
         type: String,
+        maxlength: 50,
         required: false
     },
     country: {
@@ -22,31 +25,79 @@ const addressSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
     firstName : {
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        minlength: 4,
+        maxlength: 20
     },
     lastName: {
         type: String,
-        required: true
+        required: false,
+        trim: true
     },
     emailId: {
         type: String,
-        required: true
+        required: true,
+        lowercase: true,
+        unique: [true, "EmailId must be unique"],
+        trim: true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Invalid EmailId: " + value);
+            }
+        }
+        // match: [/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "Please provide a valid email"]
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        minlength: 8,
+        select: false,
+        validate(value){
+            if(!validator.isStrongPassword(value)){
+                throw new Error("Password must be strong: " + value);
+            }
+        }
     },
     age: {
         type: Number,
-        required: true
+        min: [18, "Age must be greater than 18"],
+        required: false
     },
     gender: {
         type: String,
-        required: true
+        required: false,
+        lowercase: true,
+        validate(value) {
+            if(!["male", "female", "others"].includes(value.toLowerCase())) {
+                throw new Error("Invalid Gender");
+            }
+        }
     },
-    phoneNumber: {
+    photoUrl: {
         type: String,
-        required: true
+        required: false,
+        default: "https://www.pnrao.com/wp-content/uploads/2023/06/dummy-user-male.jpg",
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error("Invalid URL: " + value);
+            }
+        }
+    },
+    about: {
+        type: String,
+        required: false,
+        maxlength: 100,
+        default: "This is a default about of the user!"
+    },
+    skills: {
+        type: [String],
+        required: false,
+        validate(value) {
+            if(value.length > 5) {
+                throw new Error("Skills cannot be more than 5");
+            }
+        }
     },
     address: {
         type: addressSchema,
@@ -56,4 +107,9 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 })
 
-module.exports = mongoose.model("User", userSchema);
+
+const UserModel = mongoose.model("User", userSchema);
+
+UserModel.collection.createIndex({emailId: 1}, {unique: true});  //creating a unique index on emailId field
+
+module.exports = UserModel;
