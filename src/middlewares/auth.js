@@ -6,7 +6,7 @@ const userAuth = async (req, res, next) => {
         const {token} = req.cookies;
     
         if(!token){
-            res.status(401).send("Token not valid!!!!!!!!!!");
+            throw new Error("Token not valid!!!!!!!!!!");
         }
     
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
@@ -14,7 +14,7 @@ const userAuth = async (req, res, next) => {
         const user = await User.findById(decodedData._id);
     
         if(!user){
-            res.status(401).send("Unauthorized Access");
+            throw new Error("Unauthorized Access");
         }
         else{
             req.user = user;
