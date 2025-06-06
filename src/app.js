@@ -4,6 +4,9 @@ const dotenv = require("dotenv");
 const User = require("./models/user")
 const {validateSignUpData} = require("./utils/validation")
 const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const {userAuth} = require("./middlewares/auth");
 
 dotenv.config();
 
@@ -14,7 +17,7 @@ const PORT = process.env.PORT || 7778;
 
 //body-parser
 app.use(express.json());
-
+app.use(cookieParser());
 
 //Signing up a new user
 app.post("/signup", async(req, res) => {
@@ -58,9 +61,13 @@ app.post("/login", async(req, res) => {
             throw new Error("Invalid Credentials");
         };
 
-        const isPasswordValid = await user.comparePassword(password);
+        const isPasswordValid = await user.validatePassword(password);
 
         if(isPasswordValid){
+            const token = user.getJWT();
+
+            res.cookie("token", token, {httpOnly: true, secure: true, sameSite: "none", expires: new Date(Date.now() + 8 * 60 * 60 * 1000)});
+
             res.send("Login Successful");
         }
         else{
@@ -73,80 +80,23 @@ app.post("/login", async(req, res) => {
 
 });
 
-
-// GET User by email
-app.get("/user", async (req, res) => {
-
-    const userEmail = req.body.emailId;
+//GET Profile of a User
+app.get("/profile", userAuth , async (req, res) => {
     try {
-        const user = await User.findOne({emailId: userEmail});
-        if(!user){
-            return res.status(404).send("User Not Found");
-        }else {
-            res.send(user);
-        }
+        const user = req.user;
+        res.send(user);
     } catch (error) {
-        res.status(500).send("Something went wrong");
+        res.status(400).send("ERROR: " + error.message);
+        
     }
+})
 
-});
 
-// Feed API - GET /feed - get all the users from the database
-app.get("/feed", async (req, res) => {
-    try {
-        const users = await User.find({}); //we will pass empty-Filter to get all the users
-        if(users.length === 0){
-            return res.status(404).send("No users found");
-        }else {
-            res.send(users);
-        }
-    } catch (error) {
-        res.status(500).send("Something went wrong");
-    }
-});
-
-// Delete User by Id
-app.delete("/user", async (req, res) => {
-
-    const userId = req.body.userId;
-    try {
-        const user = await User.findByIdAndDelete(userId);
-        // const user = await User.findByIdAndDelete({_id: userId});
-        // const user = await User.findOneAndDelete({_id: userId});
-        if(!user){
-            return res.status(404).send("User Not Found");
-        }else {
-            res.send("User Deleted Successfully");
-        }
-    } catch (error) {
-        res.status(500).send("Something went wrong");
-    }
-});
-
-// Find by Id and Update (using PATCH Method)
-app.patch("/user/:userId", async (req, res) => {
-    const userId = req.params?.userId;
-    const data = req.body;
-
-    //allowing only fixed updatable fields (remaining aren't allowed to be updated)
-    const ALLOWED_UPDATES = ["photoUrl", "about", "skills", "gender", "age", "address"];
-
-    const isUpdateAllowed = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
-
-    if(!isUpdateAllowed){
-        return res.status(400).send("Update is not allowed");
-    }
-
-    try {
-        const user = await User.findByIdAndUpdate({_id: userId}, data, {returnDocument: "after", runValidators: true}); //(we can pass "id" also directly) this 3rd argument will return the updated document(i.e options we can pass (new: true) also works)
-        // console.log(user);
-        res.send("User Updated Successfully");
-
-    } catch (error) {
-        res.status(500).send("Something went wrong: " + error.message);
-    }
-
-});
+app.post("/sendConnectionRequest", userAuth, async(req, res) => {
+    const user = req.user;
+    console.log("Sending a connection request");
+    res.send(user.firstName + " Sent the Connection Request");
+})
 
 
 

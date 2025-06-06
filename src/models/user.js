@@ -109,7 +109,6 @@ const userSchema = new mongoose.Schema({
 })
 
 
-
 // Mongoose Pre Hook - used to encrypt the password before saving
 userSchema.pre("save", async function(next){
     try {
@@ -121,8 +120,15 @@ userSchema.pre("save", async function(next){
     }
 })
 
+userSchema.methods.getJWT = async function(){
+    const user = this;
+    const token = await jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: "8h"});
+    return token;
+}
+
+
 //compare password
-userSchema.methods.comparePassword = async function(enteredPassword) {
+userSchema.methods.validatePassword = async function(enteredPassword) {
    return await bcrypt.compare(enteredPassword, this.password);
 }
 
