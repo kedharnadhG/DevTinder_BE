@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const addressSchema = new mongoose.Schema({
     city: {
@@ -120,9 +121,9 @@ userSchema.pre("save", async function(next){
     }
 })
 
-userSchema.methods.getJWT = async function(){
+userSchema.methods.getJWT = function(){
     const user = this;
-    const token = await jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: "8h"});
+    const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: "8h"});
     return token;
 }
 
