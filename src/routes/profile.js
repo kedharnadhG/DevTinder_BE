@@ -4,12 +4,13 @@ const {userAuth} = require("../middlewares/auth");
 const {validateEditProfileData} = require("../utils/validation")
 const User = require("../models/user");
 const validator = require("validator");
+const ApiResponse = require("../utils/ApiResponse");
 
 //GET Profile of a User
 profileRouter.get("/profile/view", userAuth , async (req, res) => {
     try {
         const user = req.user;
-        res.send(user);
+        res.json(new ApiResponse(200, user, "Profile Fetched Successfully"));
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
         
@@ -32,10 +33,7 @@ profileRouter.patch("/profile/edit", userAuth , async (req, res) => {
 
         await loggedInUser.save();
 
-        res.json({
-            message: `${loggedInUser.firstName}, your profile updated successfully`,
-            data: loggedInUser
-        })
+        res.json(new ApiResponse(200, loggedInUser, `${loggedInUser.firstName}, your profile updated successfully`));
 
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
@@ -57,7 +55,7 @@ profileRouter.patch("/profile/password", userAuth , async (req, res) => {
 
             user.password = newPassword;
             await user.save();
-            res.send("Password Updated Successfully");
+            res.json(new ApiResponse(200, {}, "Password Updated Successfully"));
         }
         else{
             throw new Error("Invalid Old Password");

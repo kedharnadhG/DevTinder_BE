@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         lowercase: true,
-        unique: [true, "EmailId must be unique"],
+        unique: [true, "EmailId already exists"],
         trim: true,
         validate(value){
             if(!validator.isEmail(value)){
@@ -127,7 +127,7 @@ userSchema.pre("save", async function(next){
 
 userSchema.methods.getJWT = function(){
     const user = this;
-    const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: "8h"});
+    const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN});
     return token;
 }
 

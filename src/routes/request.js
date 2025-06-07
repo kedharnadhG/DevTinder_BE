@@ -2,6 +2,8 @@ const express = require("express")
 const {userAuth} = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest")
 const User = require("../models/user");
+const ApiResponse = require("../utils/ApiResponse");
+
 const requestRouter = express.Router();
 
 
@@ -20,7 +22,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async(req, res) 
         // check if toUserId is valid or not
         const toUser = await User.findById(toUserId);
         if(!toUser){
-            return res.status(404).send("User not found");
+            return res.status(404).json(new ApiResponse(404, null, "User Not Found"));
         }
 
         //check if the request is already sent or not
@@ -33,7 +35,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async(req, res) 
         if(connectionRequestExists){
             return res 
                 .status(400)
-                .send({message: "Connection Request Already Exists!!!"});
+                .json(new ApiResponse(400, null, "Connection Request Already Exists!!!")); 
         }
 
          const connectionRequest = new ConnectionRequest({
@@ -44,10 +46,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async(req, res) 
 
         const data = await connectionRequest.save();
 
-        res.json({
-            message: `${req.user.firstName} ${status=== "ignored" ? "ignored" : "sent"} connection request to ${toUser.firstName}`,
-            data,
-        })
+        res.json(new ApiResponse(200, data, `${req.user.firstName} ${status=== "ignored" ? "ignored" : "sent"} connection request to ${toUser.firstName}`));
 
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
@@ -55,5 +54,37 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async(req, res) 
 
 })
 
+requestRouter.post("/request/review/:status/:requestId", userAuth, async(req, res) => {
+
+
+    try {
+        const loggedInUser = req.user;
+        const {status, requestId} = req.params;
+
+        const allowedStatus = ["accepted", "rejected"];
+        if(!allowedStatus.includes(status)){
+            return res.status(400).json(new ApiResponse(400, null, "Status is not valid"));
+        }
+
+        const connectionRequest = await ConnectionRequest.findOne({
+            _id: requestId,
+            toUserId: loggedInUser._id,
+            status: "interested"
+        }).populate("fromUserId", "firstName");
+
+        if(!connectionRequest){
+            return res.status(400).json(new ApiResponse(400, null, "Connection Request Not Found"));
+        }
+
+        connectionRequest.status = status;
+        const data = await connectionRequest.save();
+
+        res.json(new ApiResponse(200, data, `${loggedInUser.firstName} ${status} connection request of ${connectionRequest.fromUserId.firstName}`));
+
+    } catch (error) {
+        res.status(400).send("ERROR: " + error.message);
+    }
+
+});
 
 module.exports = requestRouter;

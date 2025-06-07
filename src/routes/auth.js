@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/user");
 const {validateSignUpData} = require("../utils/validation");
 const validator = require("validator");
+const ApiResponse = require("../utils/ApiResponse");
 
 const authRouter = express.Router();
 
@@ -24,7 +25,7 @@ authRouter.post("/signup", async(req, res) => {
         });
 
         await user.save();
-        res.status(201).send("User Created Successfully");
+        res.status(201).json(new ApiResponse(201, {}, "User Created Successfully"));
     } catch (error) {
         console.log(error);
         res.status(400).send("ERROR: " + error.message);
@@ -54,7 +55,7 @@ authRouter.post("/login", async(req, res) => {
 
             res.cookie("token", token, {httpOnly: true, secure: true, sameSite: "none", expires: new Date(Date.now() + 8 * 60 * 60 * 1000)});
 
-            res.send("Login Successful");
+            res.json(new ApiResponse(200, {}, "Login Successful"));
         }
         else{
             throw new Error("Invalid Credentials");
@@ -69,7 +70,7 @@ authRouter.post("/login", async(req, res) => {
 authRouter.post("/logout", (req, res) => {
     res
         .cookie("token", null, {httpOnly: true, secure: true, sameSite: "none", expires: new Date(Date.now())})
-        .send("Logout Successful");
+        .json(new ApiResponse(200, {}, "Logout Successful"));
 })
 
 
