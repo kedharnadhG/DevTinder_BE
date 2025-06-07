@@ -70,11 +70,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: false,
         lowercase: true,
-        validate(value) {
-            if(!["male", "female", "others"].includes(value.toLowerCase())) {
-                throw new Error("Invalid Gender");
-            }
+        enum: {
+            values: ["male", "female", "others"],
+            message: `{VALUE} is not a valid gender type`,
         }
+        // validate(value) {
+        //     if(!["male", "female", "others"].includes(value.toLowerCase())) {
+        //         throw new Error("Invalid Gender");
+        //     }
+        // }
     },
     photoUrl: {
         type: String,
@@ -133,9 +137,8 @@ userSchema.methods.validatePassword = async function(enteredPassword) {
    return await bcrypt.compare(enteredPassword, this.password);
 }
 
+userSchema.index({firstName: 1, lastName: 1});
 
 const UserModel = mongoose.model("User", userSchema);
-
-UserModel.collection.createIndex({emailId: 1}, {unique: true});  //creating a unique index on emailId field
 
 module.exports = UserModel;
