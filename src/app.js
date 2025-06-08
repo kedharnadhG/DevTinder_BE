@@ -2,7 +2,7 @@ const express = require('express');
 const { connect, getDBStatus } = require("./config/database");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
-
+const cors = require("cors");
 
 dotenv.config();
 
@@ -10,6 +10,21 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 7778;
 
+//CORS configuration
+app.use(cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+    allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept",
+        "Access-Control-Allow-Origin",
+        "device-remember-token",
+        "Origin"
+    ]
+}))
 
 //body-parser
 app.use(express.json());
