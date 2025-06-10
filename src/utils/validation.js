@@ -12,8 +12,9 @@ const validateSignUpData = (req) => {
     }
 }
 
+//TODO: removed edit-feat for "Email"
 const validateEditProfileData = (req) => {
-    const allowedEditFields = ["firstName", "lastName", "emailId", "age", "gender", "photoUrl", "about", "skills", "address"];
+    const allowedEditFields = ["firstName", "lastName", "age", "gender", "photoUrl", "about", "skills", "address"];
     const isEditAllowed = Object.keys(req.body).every((field) =>
         allowedEditFields.includes(field))
     // console.log(isEditAllowed);
