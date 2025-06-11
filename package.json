@@ -13,13 +13,16 @@
   "author": "Kedharnadh",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.826.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
+    "node-cron": "^4.1.0",
     "validator": "^13.15.15"
   },
   "devDependencies": {
