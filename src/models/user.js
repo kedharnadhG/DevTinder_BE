@@ -85,7 +85,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false,
       default:
-        "https://www.pnrao.com/wp-content/uploads/2023/06/dummy-user-male.jpg",
+        "https://p7.hiclipart.com/preview/247/564/869/computer-icons-user-profile-clip-art-user-avatar.jpg",
       validate(value) {
         if (!validator.isURL(value)) {
           throw new Error("Invalid URL: " + value);
